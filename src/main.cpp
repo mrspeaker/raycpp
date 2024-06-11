@@ -1,9 +1,5 @@
 #include <raylib-cpp.hpp>
-#include <iostream>
-#include <vector>
 #include "globals.h"
-#include "Player.h"
-#include "Anim.h"
 #include "GameManager.h"
 #include "RendererRayLib.h"
 
@@ -17,10 +13,10 @@ int main() {
 
     gm.populate();
 
-    while (!w.ShouldClose())
-    {
+    while (!w.ShouldClose()) {
         auto dt = GetFrameTime();
         gm.update(dt);
+
         renderer.render(gm);
     }
 

@@ -6,7 +6,6 @@
 GameManager::GameManager()=default;
 
 void GameManager::populate() {
-    std::vector<Player> ps;
     for (int i = 0; i < 28; i++) {
         Player p(100.0, 0.0 + (i * 16.0));
         p.vel.x = GetRandomValue(40, 60) / 100.0;
@@ -14,7 +13,6 @@ void GameManager::populate() {
         p.anim.num_frames = 8;
         peeps.push_back(p);
     }
-
 }
 
 void GameManager::update(float dt) {
