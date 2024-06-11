@@ -8,11 +8,13 @@
 class RendererRayLib : public Renderer {
  public:
     Rectangle rec;
-    raylib::Texture tex;
+    raylib::Texture peeps;
+    raylib::Texture tiles;
     raylib::Color text_col;
 
     RendererRayLib();
     void render(const GameManager &gm) override;
+    void render_tiles(const GameMap map);
 };
 
 #endif // RENDERER_H
