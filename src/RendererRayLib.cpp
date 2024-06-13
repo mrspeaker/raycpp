@@ -13,7 +13,7 @@ RendererRayLib::RendererRayLib() {
 
 void RendererRayLib::render(const GameManager &gm) {
     // Draw
-    BeginDrawing();
+    //BeginDrawing();
     ClearBackground(BLACK);
     raylib::Color g(DARKGRAY);
     text_col.DrawText("Werd, Up!", 190, 200, 20);
@@ -33,7 +33,7 @@ void RendererRayLib::render(const GameManager &gm) {
         peeps.Draw(rec, p.pos, RAYWHITE);
     }
 
-    EndDrawing();
+    //EndDrawing();
 };
 
 void RendererRayLib::render_tiles(const GameMap map) {
