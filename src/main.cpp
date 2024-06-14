@@ -18,6 +18,7 @@ int main() {
     GameManager gm;
 
     Model model = LoadModel("res/biplane.glb");
+    Model control = LoadModel("res/control.glb");
 
     gm.populate();
 
@@ -29,7 +30,7 @@ int main() {
     camera.fovy = 40.0f;
     camera.projection = CAMERA_PERSPECTIVE;
 
-    Vector3 position = { 0.0f, 0.0f, 0.0f };
+    Vector3 position = { 0.0f, 10.0f, 0.0f };
 
     Shader shader = LoadShader("res/lighting.vs", "res/fog.fs");
     shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(shader, "matModel");
@@ -56,18 +57,26 @@ int main() {
         auto dt = GetFrameTime();
         gm.update(dt);
 
-        // Plane yaw (y-axis) controls
-        if (IsKeyDown(KEY_LEFT)) yaw += 2.0f;
-        else if (IsKeyDown(KEY_RIGHT)) yaw -= 2.0f;
 
-        // Plane roll (z-axis) controls
-        if (IsKeyDown(KEY_LEFT)) roll -= 0.6f;
-        else if (IsKeyDown(KEY_RIGHT)) roll += 0.6f;
+        auto xo = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X);
+        auto yo = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y);
+
+        auto yawo = 0.0;
+        if (IsKeyDown(KEY_LEFT)||xo < -0.5) yawo += 2.0f;
+        else if (IsKeyDown(KEY_RIGHT)||xo > 0.5) yawo -= 2.0f;
+
+        yaw += yawo;
+
+        if (yawo > 0) roll -= 0.6f;
+        else if (yawo < 0) roll += 0.6f;
         else
         {
             if (roll > 0.0f) roll -= 0.5f;
             else if (roll < 0.0f) roll += 0.5f;
         }
+
+        if (IsKeyDown(KEY_UP)) position.y += 2.0f;
+        else if (IsKeyDown(KEY_DOWN)) position.y -= 2.0f;
 
         model.transform = MatrixRotateXYZ((Vector3){ DEG2RAD*0.0, DEG2RAD*yaw, DEG2RAD*roll });
 
@@ -95,6 +104,15 @@ int main() {
 
         BeginMode3D(camera);
         DrawModel(model, position, 1.0f, WHITE);
+        for (int j = 0; j < 3; j++) {
+            for (int i = 0; i < 4; i++) {
+                DrawModel(
+                          control,
+                          (Vector3){(j - 1) * 30.0f, 0.0, (i - 2) * 45.0f + 25.0f},
+                          1.0f, WHITE);
+            }
+        }
+
         EndMode3D();
 
         EndDrawing();

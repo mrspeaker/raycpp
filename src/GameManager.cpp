@@ -20,6 +20,6 @@ void GameManager::populate() {
 void GameManager::update(float dt) {
     for (Player &p : peeps) {
         p.update(dt);
-        if (p.pos.x > screenWidth) p.pos.x = 0;
+        if (p.pos.x > screenWidth) p.pos.x = -16.0;
     }
 }

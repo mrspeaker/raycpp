@@ -20,14 +20,6 @@ void RendererRayLib::render(const GameManager &gm) {
 
     render_tiles(gm.map);
 
-    if (IsGamepadAvailable(0)) {
-        DrawCircle(259 + (int)(GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X)*20),
-                   152 + (int)(GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y)*20), 20, RAYWHITE);
-
-        DrawCircle(459 + (int)(GetGamepadAxisMovement(0, GAMEPAD_AXIS_RIGHT_X)*20),
-                   152 + (int)(GetGamepadAxisMovement(0, GAMEPAD_AXIS_RIGHT_Y)*20), 20, RAYWHITE);
-    }
-
     for (const Player &p : gm.peeps) {
         rec.x = p.anim.frame * 16.0;
         peeps.Draw(rec, p.pos, RAYWHITE);
