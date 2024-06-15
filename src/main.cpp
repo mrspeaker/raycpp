@@ -2,6 +2,7 @@
 #include "globals.h"
 #include "GameManager.h"
 #include "RendererRayLib.h"
+#include <iostream>
 
 #if defined(PLATFORM_DESKTOP)
     #define GLSL_VERSION            330
@@ -9,46 +10,51 @@
     #define GLSL_VERSION            100
 #endif
 
+# define RLIGHTS_IMPLEMENTATION
+# include "./rlights.h"
+
 int main() {
 
+    SetConfigFlags(FLAG_MSAA_4X_HINT);
+
     raylib::Window w(screenWidth, screenHeight, "Raycpp");
-    SetTargetFPS(60);
+    w.SetTargetFPS(60);
 
     RendererRayLib renderer{};
     GameManager gm;
 
-    Model model = LoadModel("res/biplane.glb");
-    Model control = LoadModel("res/control.glb");
+    raylib::Model model("res/biplane.glb");
+    raylib::Model control("res/control.glb");
 
     gm.populate();
 
 
-    Camera camera = { 0 };
-    camera.position = (Vector3){ 0.01f, 150.0f, 0.0f };
-    camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
-    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
-    camera.fovy = 40.0f;
-    camera.projection = CAMERA_PERSPECTIVE;
+    raylib::Camera3D camera(
+                     (Vector3){ 0.01f, 150.0f, 0.0f },
+                     (Vector3){ 0.0f, 0.0f, 0.0f },
+                     (Vector3){ 0.0f, 1.0f, 0.0f },
+                     40.0f,
+                     CAMERA_PERSPECTIVE);
 
     Vector3 position = { 0.0f, 10.0f, 0.0f };
 
-    Shader shader = LoadShader("res/lighting.vs", "res/fog.fs");
-    shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(shader, "matModel");
+    raylib::Shader shader("res/lighting.vs", "res/lighting.fs");
+
+    for (int i = 0; i < model.materialCount; i++) {
+        model.materials[i].shader = shader;
+    }
+    for (int i = 0; i < control.materialCount; i++) {
+        control.materials[i].shader = shader;
+    }
+
     shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shader, "viewPos");
-    shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(shader, "matModel");
-    shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shader, "viewPos");
-
-    // Ambient light level
-    int ambientLoc = GetShaderLocation(shader, "ambient");
-    SetShaderValue(shader, ambientLoc, (float[4]){ 1.2f, 0.2f, 0.2f, 1.0f }, SHADER_UNIFORM_VEC4);
-
-    float fogDensity = 0.15f;
-    int fogDensityLoc = GetShaderLocation(shader, "fogDensity");
-    SetShaderValue(shader, fogDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
-
     SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], &camera.position.x, SHADER_UNIFORM_VEC3);
 
-    //CreateLight(LIGHT_POINT, (Vector3){ 0, 2, 6 }, Vector3Zero(), WHITE, shader);
+    int ambientLoc = GetShaderLocation(shader, "ambient");
+    SetShaderValue(shader, ambientLoc, (float[4]){ 0.5f, 0.5f, 0.5f, 1.0f }, SHADER_UNIFORM_VEC4);
+
+    Light lights[MAX_LIGHTS] = { 0 };
+    lights[0] = CreateLight(LIGHT_POINT, (Vector3){ -0, 50, -0 }, Vector3Zero(), WHITE, shader);
 
     float yaw = 0.0f;
     float roll = 0.0f;
@@ -98,24 +104,28 @@ int main() {
         auto v = Vector3Transform((Vector3){0,0,30*dt}, model.transform);
         position = Vector3Add(position, v);
 
-        BeginDrawing();
+        w.BeginDrawing();
 
         renderer.render(gm);
 
-        BeginMode3D(camera);
-        DrawModel(model, position, 1.0f, WHITE);
+        camera.BeginMode();
+        shader.BeginMode();
+
+        DrawCube(Vector3Zero(), 2.0, 4.0, 2.0, WHITE);
+
+        model.Draw(position, 1.0f, WHITE);
         for (int j = 0; j < 3; j++) {
             for (int i = 0; i < 4; i++) {
-                DrawModel(
-                          control,
-                          (Vector3){(j - 1) * 30.0f, 0.0, (i - 2) * 45.0f + 25.0f},
-                          1.0f, WHITE);
+                control.Draw(
+                             (Vector3){(j - 1) * 30.0f, 0.0, (i - 2) * 45.0f + 25.0f},
+                             1.0f, WHITE);
             }
         }
 
-        EndMode3D();
+        shader.EndMode();
+        camera.EndMode();
 
-        EndDrawing();
+        w.EndDrawing();
     }
 
     return 0;
