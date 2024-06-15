@@ -28,9 +28,8 @@ int main() {
 
     gm.populate();
 
-
     raylib::Camera3D camera(
-                     (Vector3){ 0.01f, 150.0f, 0.0f },
+                     (Vector3){ 0.001f, 200.0f, 0.0f },
                      (Vector3){ 0.0f, 0.0f, 0.0f },
                      (Vector3){ 0.0f, 1.0f, 0.0f },
                      40.0f,
@@ -68,21 +67,37 @@ int main() {
         auto yo = GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y);
 
         auto yawo = 0.0;
-        if (IsKeyDown(KEY_LEFT)||xo < -0.5) yawo += 2.0f;
-        else if (IsKeyDown(KEY_RIGHT)||xo > 0.5) yawo -= 2.0f;
+        if (IsKeyDown(KEY_LEFT)||xo < -0.5) yawo += 1.0f;
+        else if (IsKeyDown(KEY_RIGHT)||xo > 0.5) yawo -= 1.0f;
 
         yaw += yawo;
 
-        if (yawo > 0) roll -= 0.6f;
-        else if (yawo < 0) roll += 0.6f;
+        auto yawsp = 0.5f;
+        if (yawo > 0) {
+            if (roll > -50.0) {
+                roll -= yawsp * roll > 0 ? 2 : 1;
+            }
+        }
+        else if (yawo < 0) {
+            if (roll < 50.0) {
+                roll += yawsp * roll < 0 ? 2 : 1;
+            }
+        }
         else
         {
             if (roll > 0.0f) roll -= 0.5f;
             else if (roll < 0.0f) roll += 0.5f;
         }
 
-        if (IsKeyDown(KEY_UP)) position.y += 2.0f;
-        else if (IsKeyDown(KEY_DOWN)) position.y -= 2.0f;
+        if (IsKeyDown(KEY_UP)) position.y -= 10.0f * dt;
+        else if (IsKeyDown(KEY_DOWN)) position.y += 10.0f * dt;
+        camera.position.x = position.x;
+        camera.position.z = position.z - 50;
+
+        camera.target.x = position.x;
+        camera.target.z = position.z;
+
+        SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], &camera.position.x, SHADER_UNIFORM_VEC3);
 
         model.transform = MatrixRotateXYZ((Vector3){ DEG2RAD*0.0, DEG2RAD*yaw, DEG2RAD*roll });
 
@@ -101,7 +116,7 @@ int main() {
             position.z = w2;
         }
 
-        auto v = Vector3Transform((Vector3){0,0,30*dt}, model.transform);
+        auto v = Vector3Transform((Vector3){0,0,20*dt}, model.transform);
         position = Vector3Add(position, v);
 
         w.BeginDrawing();
@@ -111,6 +126,7 @@ int main() {
         camera.BeginMode();
         shader.BeginMode();
 
+        DrawGrid(10, 20);
         DrawCube(Vector3Zero(), 2.0, 4.0, 2.0, WHITE);
 
         model.Draw(position, 1.0f, WHITE);
@@ -124,6 +140,8 @@ int main() {
 
         shader.EndMode();
         camera.EndMode();
+
+        // DrawFPS(10, 10);
 
         w.EndDrawing();
     }
